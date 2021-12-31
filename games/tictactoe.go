@@ -13,6 +13,7 @@ type TTTGame struct {
 	player2     string
 	player2ID   string
 	currentTurn int //P1 = 1, P2 = 2
+	movesLeft   int
 	board       [3][3]rune
 }
 
@@ -30,6 +31,7 @@ func resetGame() {
 	Game.player2 = ""
 	Game.player2ID = ""
 	Game.currentTurn = 1
+	Game.movesLeft = 9
 	Game.board = [3][3]rune{{' ', ' ', ' '}, {' ', ' ', ' '}, {' ', ' ', ' '}}
 }
 
@@ -107,6 +109,7 @@ func playerMove(playerID string, row int, col int) error {
 	}
 
 	Game.board[row-1][col-1] = playerMark
+	Game.movesLeft--
 	return nil
 }
 
@@ -166,7 +169,7 @@ func PlayTTT(playerID string, player string, args []string) string {
 			Game.player1 = player
 			return player +
 				" has entered the arena for some tic tac toe, who will join them? " +
-				"Type !TTT to join."
+				"Type !ttt to join."
 		} else if Game.player2ID == "" {
 			if playerID == Game.player1ID {
 				return "Error: must have different players"
@@ -180,8 +183,8 @@ func PlayTTT(playerID string, player string, args []string) string {
 
 	// Help menu
 	case "help":
-		return "To play tic tac toe, type !TTT. After starting a new game type " +
-			"!TTT followed by any of the following commands:\n" +
+		return "To play tic tac toe, type !ttt. After starting a new game type " +
+			"!ttt followed by any of the following commands:\n" +
 			"`concede`: To concede the game and let your opponent win.\n" +
 			"`# #    `: Two numbers corresponding with the row and column you wish to mark next. " +
 			"for example: '1 1' is top left, '2 3' is middle right, etc.\n"
@@ -204,7 +207,7 @@ func PlayTTT(playerID string, player string, args []string) string {
 			return err.Error()
 		}
 
-		// execute move (if valid)
+		// execute move (if valid) and check for win
 		err = playerMove(playerID, row, col)
 		if err != nil {
 			return err.Error()
@@ -222,7 +225,14 @@ func PlayTTT(playerID string, player string, args []string) string {
 			} else {
 				Game.currentTurn = 1
 			}
+
+			// Check if any moves are left
+			if Game.movesLeft == 0 {
+				resetGame()
+				result += "TIE! Game over."
+			}
 		}
+
 	}
 
 	// Return message to discord

@@ -5,14 +5,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"example.com/messages"
-	"example.com/terminal"
+	term "example.com/terminal"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -27,22 +26,21 @@ func init() {
 }
 
 func main() {
-	fmt.Println(terminal.Green + "Starting up Discord bot..." + terminal.Reset)
+	term.Print(term.SUCCESS, "Starting DiscordOnTheGo ...")
 	session, err := discordgo.New("Bot " + Token)
 
 	if err != nil {
-		fmt.Println(terminal.Red + "Error starting a Discord session" + terminal.Reset)
+		term.Print(term.ERROR, "Could not start a Discord Session")
 		log.Fatal(err)
 		return
 	}
 
 	if Token == "" {
-		fmt.Println(terminal.Red + "Error: no token provided.. exiting" + terminal.Reset)
+		term.Print(term.ERROR, "No token provided")
 		return
 	}
 
 	//Register messageCreate func as a callback for MessageCreate events
-	//session.AddHandler(messageCreate)
 	session.AddHandler(messages.MessageInHandler)
 
 	// We only care about receiving messages
@@ -51,12 +49,12 @@ func main() {
 	// Open a websocket to discord and listen
 	err = session.Open()
 	if err != nil {
-		fmt.Println(terminal.Red+"Error opening websocket: "+terminal.Reset, err)
+		term.Print(term.ERROR, "Could not open WebSocket")
 		return
 	}
 
 	// Main loop
-	fmt.Println(terminal.Green + "Bot is now running..." + terminal.Reset)
+	term.Print(term.SUCCESS, "Bot is connected and running")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
