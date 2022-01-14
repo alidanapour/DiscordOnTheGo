@@ -1,4 +1,4 @@
-package games
+package ttt
 
 import (
 	"errors"
@@ -191,6 +191,11 @@ func PlayTTT(playerID string, player string, args []string) string {
 
 	// Concede
 	case "concede":
+		if Game.player2ID == "" {
+			str := Game.player1 + " has left the game."
+			resetGame()
+			return str
+		}
 		return "TODO..."
 
 	// Otherwise assume valid move (i.e two numbers).

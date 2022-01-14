@@ -1,10 +1,12 @@
 package messages
 
 import (
+	"os"
 	"strings"
 
 	"example.com/external"
-	"example.com/games"
+	rps "example.com/games/RPS"
+	ttt "example.com/games/TTT"
 	term "example.com/terminal"
 	"github.com/bwmarrin/discordgo"
 )
@@ -22,6 +24,20 @@ func MessageOutHandler(session *discordgo.Session, channelID string, text string
 	session.ChannelMessageSend(channelID, text)
 }
 
+func MessageFileOutHandler(session *discordgo.Session, channelID string, file string) {
+	f, err := os.Open(file)
+
+	if err != nil {
+		term.Print(term.ERROR, err.Error())
+		return
+	}
+
+	_, err = session.ChannelFileSend(channelID, "RPS.png", f)
+	if err != nil {
+		term.Print(term.ERROR, err.Error())
+	}
+}
+
 func MessageEmbedOutHandler(session *discordgo.Session, channelID string, embed *discordgo.MessageEmbed) {
 	session.ChannelMessageSendEmbed(channelID, embed)
 }
@@ -36,16 +52,30 @@ func newMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
 		command := args[0]
 		args = append(args[1:]) // remove command from args
 
-		//TODO: add flag to display or hide all user commands
-		term.Print(term.COMMAND, message.Author.Username+": "+command)
+		//TODO: add flag to display or hide all user commands server-side
+		term.Print(term.COMMAND, message.Author.Username+": "+newMessage)
+
 		switch command {
 		case "!ping":
 			MessageOutHandler(session, message.ChannelID, "")
+
 		case "!pong":
 			MessageOutHandler(session, message.ChannelID, "ping")
+
 		case "!ttt":
-			tttResult := games.PlayTTT(message.Author.ID, message.Author.Username, args)
+			tttResult := ttt.PlayTTT(message.Author.ID, message.Author.Username, args)
 			MessageOutHandler(session, message.ChannelID, tttResult)
+
+		case "!rps":
+			success, str, err := rps.PlayRPS(message.Author.ID, message.Author.Username, args)
+			if err != nil {
+				term.Print(term.ERROR, err.Error())
+			} else if success {
+				MessageFileOutHandler(session, message.ChannelID, str)
+			} else {
+				MessageOutHandler(session, message.ChannelID, str)
+			}
+
 		case "!apod":
 			apodResult, err := external.ApodRequest()
 			if err == nil {

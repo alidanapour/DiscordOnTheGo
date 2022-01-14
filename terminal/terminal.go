@@ -1,4 +1,4 @@
-// Helper package which changes the colour of the server side CLI
+// Helper package which changes the colour of the server side CLI via helper functions
 
 // Credit: https://twin.sh/articles/35/how-to-add-colors-to-your-console-terminal-output-in-go
 package terminal
@@ -39,7 +39,7 @@ func init() {
 		red = ""
 		green = ""
 		yellow = ""
-		//blue = ""
+		blue = ""
 		//purple = ""
 		//cyan = ""
 		//gray = ""
