@@ -9,6 +9,7 @@ import (
 	"image/draw"
 	"image/png"
 	"os"
+	"strconv"
 	"time"
 
 	st "example.com/games/RPS/state"
@@ -23,22 +24,27 @@ const (
 	srcDir = "games/RPS/draw/src/"
 )
 
+var bgSrc color.RGBA
 var circleSrc image.Image
 var yellowSrc image.Image
 var whiteSrc image.Image
 var redSrc image.Image
 
 func init() {
-	//Mask Source Colors
-	circleSrc = &image.Uniform{color.RGBA{142, 202, 230, 255}}
-	yellowSrc = &image.Uniform{color.RGBA{225, 183, 3, 255}}
-	whiteSrc = &image.Uniform{color.RGBA{225, 225, 225, 255}}
-	redSrc = &image.Uniform{color.RGBA{174, 32, 18, 255}}
-
+	defaultColors()
 	err := drawBackground()
 	if err != nil {
 		term.Print(term.ERROR, err.Error())
 	}
+}
+
+// Resets image colors to default
+func defaultColors() {
+	bgSrc = color.RGBA{2, 48, 71, 255}
+	circleSrc = &image.Uniform{color.RGBA{142, 202, 230, 255}}
+	yellowSrc = &image.Uniform{color.RGBA{225, 183, 3, 255}}
+	whiteSrc = &image.Uniform{color.RGBA{225, 225, 225, 255}}
+	redSrc = &image.Uniform{color.RGBA{174, 32, 18, 255}}
 }
 
 // The following struct/functions are used to draw circles
@@ -63,30 +69,7 @@ func (c *circle) At(x, y int) color.Color {
 	return color.Alpha{0}
 }
 
-func getMask() (image.Image, error) {
-	mask_file, err := os.Open(srcDir + "mask.png")
-	if err != nil {
-		return nil, err
-	}
-	mask, err := png.Decode(mask_file)
-	if err != nil {
-		return nil, err
-	}
-	return mask, nil
-}
-
-func getBg() (image.Image, error) {
-	bg_file, err := os.Open(tmpDir + "bg.png")
-	if err != nil {
-		return nil, err
-	}
-	bg, err := png.Decode(bg_file)
-	if err != nil {
-		return nil, err
-	}
-	return bg, nil
-}
-
+// Attempts to retrieve the file in /src/ and decode it as PNG
 func getImg(file string) (image.Image, error) {
 	openedFile, err := os.Open(srcDir + file)
 	if err != nil {
@@ -109,13 +92,13 @@ func newImg() *image.RGBA {
 	return img
 }
 
-// Draws and saves a background /src/bg.png upon init
+// Draws and saves a background /src/bg.png
 func drawBackground() error {
 
 	img := newImg()
 
-	// Set Background color HEX# 023047 Purssian Blue
-	background := color.RGBA{2, 48, 71, 0xff}
+	// Set Background color
+	background := bgSrc
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			img.Set(x, y, background)
@@ -130,7 +113,7 @@ func drawBackground() error {
 	draw.DrawMask(dst, dst.Bounds(), circleSrc, image.Point{}, &circle{image.Pt(320, 110), 50}, image.Point{}, draw.Over)
 
 	// Draw Static Texts (using masks)
-	mask, err := getMask()
+	mask, err := getImg("mask.png")
 	if err != nil {
 		return err
 	}
@@ -160,7 +143,7 @@ func drawBackground() error {
 	draw.DrawMask(dst, vsB, whiteSrc, image.Point{}, mask, maskB.Min.Add(image.Point{0, 37}), draw.Over)
 
 	// Encode background as PNG.
-	bg_file, err := os.Create(tmpDir + "bg.png")
+	bg_file, err := os.Create(srcDir + "bg.png")
 
 	if err != nil {
 		return err
@@ -236,7 +219,7 @@ var rightStatus image.Point = image.Point{290, 174}
 // Input: User name, move, bot move, and result
 func RPS_GenerateImage(playerName string, playerM st.Move, botM st.Move, res st.Result) (string, error) {
 	// Create new image and set background/moves
-	bg, err := getBg()
+	bg, err := getImg("bg.png")
 	if err != nil {
 		return "", err
 	}
@@ -244,7 +227,7 @@ func RPS_GenerateImage(playerName string, playerM st.Move, botM st.Move, res st.
 	draw.Draw(dst, bg.Bounds(), bg, image.Point{}, draw.Over)
 	drawMoves(playerM, botM, dst)
 
-	mask, err := getMask()
+	mask, err := getImg("mask.png")
 	if err != nil {
 		return "", err
 	}
@@ -279,7 +262,57 @@ func RPS_GenerateImage(playerName string, playerM st.Move, botM st.Move, res st.
 	return file, nil
 }
 
-// Keeps file i/o related to this game attached to this package
+// Sets a user-defined color for bg.png
+// Returns True if successful
+// Returns false with a string if there is a user-error
+// Returns an error otherwise
+func RPS_SetColor(args []string) (string, error) {
+
+	cmd := args[0]
+
+	if cmd == "set-default" {
+		defaultColors()
+		err := drawBackground()
+		if err != nil {
+			return "", err
+		}
+		return "RPS Game: Default colors Set!", nil
+	}
+
+	if len(args) < 4 {
+		return "RPS Game Error: Insufficient number of arguments", nil
+	}
+
+	R, err1 := strconv.ParseInt(args[1], 10, 8)
+	G, err2 := strconv.ParseInt(args[2], 10, 8)
+	B, err3 := strconv.ParseInt(args[3], 10, 8)
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		return "RPS Game Error: Invalid RGB values entered", nil
+	}
+
+	if R < 0 || R > 255 ||
+		G < 0 || G > 255 ||
+		B < 0 || B > 255 {
+		return "RPS Game Error: RGB values must be between 0 and 255", nil
+	}
+
+	switch cmd {
+	case "set-bg":
+		bgSrc = color.RGBA{uint8(R), uint8(G), uint8(B), 255}
+	case "set-circle":
+		circleSrc = &image.Uniform{color.RGBA{uint8(R), uint8(G), uint8(B), 255}}
+	default:
+	}
+
+	err := drawBackground()
+	if err != nil {
+		return "", err
+	}
+	return "RPS Game: Color set!", nil
+}
+
+// Cleans up file i/o related to this game
 func RPS_DeleteTmpImage(dir string) {
 	os.Remove(dir)
 }

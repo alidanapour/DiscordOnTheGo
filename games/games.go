@@ -14,7 +14,7 @@ func PlayTTT(playerID string, player string, args []string) string {
 /*
 Returns the following
 Bool  : Gameplay was successful and image was generated
-String: Message from game
+String: Message from game and bool = false
 Error : Error from game. Incorrect args, failure to generate image, etc
 */
 func PlayRPS(playerID string, player string, args []string) (bool, string, error) {
@@ -23,11 +23,6 @@ func PlayRPS(playerID string, player string, args []string) (bool, string, error
 	if err != nil {
 		return false, "", err
 	}
-
-	if success {
-		return true, str, nil
-	}
-
-	return false, str, nil
+	return success, str, nil
 
 }

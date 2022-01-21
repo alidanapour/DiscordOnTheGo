@@ -10,8 +10,13 @@ import (
 	st "example.com/games/RPS/state"
 )
 
-// Vars
+// Vars and Constants
 var botMove st.Move
+
+const help = "Rock Paper Scissors - List of Commands: \n" +
+	"`!rps <move>` - Play a game of RPS with the bot. Replace <move> with a valid move.\n" +
+	"`!rps set-bg # # #` - Sets the background of the RPS game to the desired RGB values.\n" +
+	"`!rps set-circle # # #` - Sets the circles to the desired RGB values."
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
@@ -36,13 +41,22 @@ func parsePlayerMove(playerMove string) (st.Move, error) {
 	}
 }
 
-// Returns a string denoting if a player has won RPS against the bot
-// TODO: track wins/losses with playerID
+// Executes player command.
+// May play a game or may change colors
+// Returns true if a game was played (and image dir returned)
+// Returns false if a message is needed to send to the user
 func PlayRPS(playerID string, player string, args []string) (bool, string, error) {
 
 	if len(args) == 0 {
-		return false, "To play Rock Paper Scissors type !rps <move>. Where <move>" +
-			"is replaced with Rock, Paper, or Scissors.", nil
+		return false, help, nil
+	} else if args[0] == "help" {
+		return false, help, nil
+	} else if args[0] == "set-bg" || args[0] == "set-circle" || args[0] == "set-default" {
+		msg, err := draw.RPS_SetColor(args)
+		if err != nil {
+			return false, "", err
+		}
+		return false, msg, nil
 	}
 
 	playerMove, err := parsePlayerMove(args[0])
