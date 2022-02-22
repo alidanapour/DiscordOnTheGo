@@ -7,6 +7,7 @@ import (
 	"example.com/external"
 	rps "example.com/games/RPS"
 	ttt "example.com/games/TTT"
+	"example.com/games/dad"
 	term "example.com/terminal"
 	"github.com/bwmarrin/discordgo"
 )
@@ -57,7 +58,7 @@ func newMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
 
 		switch command {
 		case "!ping":
-			MessageOutHandler(session, message.ChannelID, "")
+			MessageOutHandler(session, message.ChannelID, "pong")
 
 		case "!pong":
 			MessageOutHandler(session, message.ChannelID, "ping")
@@ -89,6 +90,11 @@ func newMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
 
 	} else {
 		term.Print(term.MESSAGE, message.Author.Username+": "+newMessage)
+
+		words := strings.Fields(newMessage)
+		if len(words) == 2 && (strings.ToUpper(words[0]) == "I'M" || strings.ToUpper(words[0]) == "IM") {
+			MessageOutHandler(session, message.ChannelID, dad.HelloDad(words[1]))
+		}
 	}
 
 }
