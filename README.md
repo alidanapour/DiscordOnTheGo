@@ -1,7 +1,7 @@
 # DiscordOnTheGo
 This project is a [Discord](https://discord.com/) chat bot that I wrote in order to learn Golang. Discord is a VoIP, instant messaging, and digital distribution platform targeted primarily towards gamers. My project uses the Discord API in order to run an interactive chat bot with users on a Discord server.
 
-In terms of file structure, the backbone of the project is located in main.go and messages/messages.go. The most interesting code of this project so far would be the image generation for Rock Paper Scissors (See [Interesting Features](#interesting-features) below). Images of the server in action can be seen in [Screenshots](#screenshots).
+In terms of file structure, the backbone of the project is located in main.go and messages/messages.go. The most interesting code of this project so far would be the image generation for Rock Paper Scissors (See [Interesting Features](#interesting-features)). Images of the server in action can be seen in [Screenshots](#screenshots).
 
 *Note: This project is still under developement*
 
