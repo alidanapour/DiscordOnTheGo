@@ -43,7 +43,7 @@ Here is an example of the colours after a user induced change:
 ![APOD](/sample-images/apod.PNG)
 
 ## TicTacToe
-![TTT](/sample-images/ttt2.PNG)
+![TTT](/sample-images/ttt.PNG)
 
 ## Rock Paper Scissors
 
